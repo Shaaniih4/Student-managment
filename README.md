@@ -1,4 +1,3 @@
-# Student-managment
 # YouTube Playlist Downloader
 
 # Stand with Israel!

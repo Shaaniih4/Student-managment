@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4A90E2">
+    <title>Teacher Dashboard - College Attendance</title>
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="manifest" href="manifest.json">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#4A90E2',
+                        'primary-dark': '#3A7BC8',
+                        secondary: '#F5A623',
+                        'light-bg': '#F7FAFC',
+                        'dark-bg': '#1A202C',
+                        'light-text': '#2D3748',
+                        'dark-text': '#E2E8F0',
+                        'light-card': '#FFFFFF',
+                        'dark-card': '#2D3748',
+                        success: '#48BB78', // green-500
+                        danger: '#F56565', // red-500
+                    }
+                }
+            }
+        }
+    </script>
+     <style>
+        body { font-family: 'Inter', sans-serif; }
+        .network-status { position: fixed; top: 10px; right: 10px; padding: 8px 12px; border-radius: 6px; font-size: 0.9em; z-index: 1000;}
+        .online { background-color: #48BB78; color: white; }
+        .offline { background-color: #F56565; color: white; }
+        .table-fixed-layout { table-layout: fixed; width: 100%; }
+        .table-fixed-layout th, .table-fixed-layout td { overflow-wrap: break-word; word-wrap: break-word; }
+        /* Custom toggle switch */
+        .toggle-checkbox:checked {
+            right: 0;
+            border-color: #4A90E2; /* primary color */
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #4A90E2; /* primary color */
+        }
+    </style>
+</head>
+<body class="bg-light-bg dark:bg-dark-bg text-light-text dark:text-dark-text transition-colors duration-300">
+
+    <header class="bg-light-card dark:bg-dark-card shadow-md p-4 sticky top-0 z-40 no-print">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-xl sm:text-2xl font-bold text-primary dark:text-blue-400">Teacher Dashboard</h1>
+            <div class="flex items-center space-x-4">
+                <span id="currentUserDisplay" class="text-sm hidden sm:block"></span>
+                <button id="darkModeToggle" class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700" aria-label="Toggle dark mode">
+                    <svg id="sunIcon" class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m8.66-8.66l-.707.707M4.04 4.04l-.707.707m15.92 0l-.707-.707M5.76 18.24l-.707.707M12 7a5 5 0 100 10 5 5 0 000-10zm0 0V3m0 18v-2"></path></svg>
+                    <svg id="moonIcon" class="w-5 h-5 text-gray-400 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                </button>
+                <button id="logoutButton" class="text-sm bg-danger hover:bg-red-600 text-white py-2 px-3 rounded-lg transition-colors">Logout</button>
+            </div>
+        </div>
+        <div id="networkStatus" class="network-status"></div>
+    </header>
+
+    <main class="container mx-auto p-4 sm:p-6">
+        <div id="loadingIndicator" class="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center z-50 hidden">
+            <div class="bg-light-card dark:bg-dark-card p-6 rounded-lg shadow-xl text-center">
+                <svg class="animate-spin h-10 w-10 text-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-light-text dark:text-dark-text">Loading data...</p>
+            </div>
+        </div>
+
+        <section id="controlsSection" class="mb-6 bg-light-card dark:bg-dark-card p-4 sm:p-6 rounded-xl shadow-lg no-print">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                <div>
+                    <label for="classSelect" class="block text-sm font-medium mb-1">Select Class:</label>
+                    <select id="classSelect" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 bg-transparent dark:text-gray-200">
+                        <option value="">-- Select a Class --</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                </div>
+                <div>
+                    <label for="attendanceDate" class="block text-sm font-medium mb-1">Attendance Date:</label>
+                    <input type="date" id="attendanceDate" class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary dark:focus:ring-blue-400 bg-transparent dark:text-gray-200">
+                </div>
+                <button id="loadAttendanceButton" class="bg-secondary hover:bg-orange-600 text-white font-semibold py-3 px-4 rounded-lg transition-colors h-fit">Load Students</button>
+            </div>
+        </section>
+
+        <section id="attendanceSection" class="hidden bg-light-card dark:bg-dark-card p-4 sm:p-6 rounded-xl shadow-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Student List for <span id="selectedClassName" class="text-primary dark:text-blue-400"></span></h2>
+                 <button id="markAllPresent" class="text-xs sm:text-sm bg-green-500 hover:bg-green-600 text-white py-1 px-2 sm:py-2 sm:px-3 rounded-md transition-colors">Mark All Present</button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700 table-fixed-layout">
+                    <thead class="bg-gray-50 dark:bg-gray-800">
+                        <tr>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sm:w-1/12 w-1/6">S.No.</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sm:w-4/12 w-3/6">Student Email</th>
+                            <th scope="col" class="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider sm:w-2/12 w-2/6">Status</th>
+                            <th scope="col" class="px-4 py-3 text-center text-xs font-medium uppercase tracking-wider sm:w-3/12">Toggle (P/A)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="studentListTableBody" class="bg-light-card dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700">
+                        <!-- Student rows will be populated by JS -->
+                        <tr><td colspan="4" class="text-center p-4">Select a class and date, then click "Load Students".</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="mt-6 flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-3 no-print">
+                <button id="saveAttendanceButton" class="bg-primary hover:bg-primary-dark text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                    ✅ Save Attendance
+                </button>
+                <button id="downloadCsvButton" class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                    📥 Download CSV
+                </button>
+                <button id="syncAttendanceButton" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                    🔁 Sync Data (<span id="syncQueueCount">0</span>)
+                </button>
+                 <button id="generateQrButton" class="bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors">
+                    📷 Generate QR
+                </button>
+            </div>
+        </section>
+        
+        <section id="qrCodeSection" class="hidden mt-6 bg-light-card dark:bg-dark-card p-6 rounded-xl shadow-lg text-center no-print">
+            <h3 class="text-lg font-semibold mb-2">Attendance QR Code</h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Students can scan this to mark themselves present for <span id="qrClassName" class="font-bold"></span> on <span id="qrDate" class="font-bold"></span>.</p>
+            <div id="qrcodeOutput" class="flex justify-center items-center my-4 min-h-[200px] min-w-[200px] bg-white p-2 rounded-md inline-block">
+                <!-- QR code will be rendered here -->
+            </div>
+            <button id="closeQrButton" class="mt-4 bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-lg">Close QR</button>
+        </section>
+        
+        <div id="printAttendanceSection" class="print-only hidden">
+            <h2 class="text-xl font-bold my-4 text-center">Attendance Report</h2>
+            <p class="text-center mb-2"><strong>Class:</strong> <span id="printClassName"></span></p>
+            <p class="text-center mb-4"><strong>Date:</strong> <span id="printDate"></span></p>
+            <table class="min-w-full border border-gray-300">
+                <thead>
+                    <tr>
+                        <th class="border border-gray-300 px-2 py-1">S.No.</th>
+                        <th class="border border-gray-300 px-2 py-1">Student Email</th>
+                        <th class="border border-gray-300 px-2 py-1">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="printStudentListTableBody">
+                    <!-- Data for printing -->
+                </tbody>
+            </table>
+        </div>
+         <button onclick="window.print()" title="Print Attendance" class="fixed bottom-5 right-5 bg-primary hover:bg-primary-dark text-white font-bold py-3 px-3 rounded-full shadow-lg no-print">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-printer"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+        </button>
+
+
+    </main>
+
+    <!-- Message Modal (already in index.html, included here for completeness if pages are standalone for now) -->
+    <div id="messageModal" class="fixed inset-0 bg-gray-900 bg-opacity-50 dark:bg-opacity-75 flex items-center justify-center p-4 z-50 hidden transition-opacity duration-300">
+        <div class="bg-light-card dark:bg-dark-card p-6 rounded-lg shadow-xl w-full max-w-sm text-center">
+            <h3 id="messageModalTitle" class="text-xl font-semibold mb-3 text-light-text dark:text-dark-text">Message</h3>
+            <p id="messageModalText" class="text-gray-700 dark:text-gray-300 mb-4"></p>
+            <button id="messageModalClose" class="bg-primary hover:bg-primary-dark text-white font-medium py-2 px-4 rounded-lg transition-colors duration-300">
+                OK
+            </button>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/db.js"></script>
+    <script src="js/teacher.js"></script>
+</body>
+</html>

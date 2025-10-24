@@ -1,0 +1,79 @@
+/* General body styles are handled by Tailwind utility classes in the HTML. */
+/* You can add global styles here if needed, but prefer Tailwind for consistency. */
+
+/* Example: Custom scrollbar (optional) */
+/* ::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
+} */
+
+/* Network status styles are embedded in index.html for simplicity with Tailwind,
+   but could be moved here if they become more complex. */
+
+/* Additional component-specific styles can be added here. */
+/* For instance, if you have elements that are hard to style with Tailwind alone. */
+
+/* Styles for the message modal - mostly handled by Tailwind but some base structure if needed */
+#messageModal.hidden {
+    display: none;
+    opacity: 0;
+}
+#messageModal {
+    opacity: 1;
+}
+
+
+/* Print styles */
+@media print {
+  body {
+    font-family: 'Times New Roman', Times, serif;
+    color: #000;
+    background-color: #fff;
+  }
+
+  .no-print, .no-print * {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  /* Ensure content is not cut off */
+  @page {
+    margin: 1in;
+  }
+
+  a {
+    text-decoration: none;
+    color: #000;
+  }
+
+  a[href^="http"]:after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+  }
+
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+  }
+  th, td {
+    border: 1px solid #ccc !important;
+    padding: 0.25rem !important;
+    text-align: left !important;
+  }
+  th {
+    background-color: #f0f0f0 !important;
+  }
+}

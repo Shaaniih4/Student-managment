@@ -1,0 +1,2 @@
+﻿Version 1.9.29:
+- Hopefully fixed "Please sign in" issues once and for all
